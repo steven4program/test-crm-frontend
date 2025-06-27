@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect, type ReactNode } from "react"
 import type { User } from "./types"
 import { AuthContext } from "./context"
+import { authService } from "../services/auth"
 
 interface AuthProviderProps {
   children: ReactNode
@@ -15,43 +16,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for stored token on app load
-    const storedToken = localStorage.getItem("token")
-    const storedUser = localStorage.getItem("user")
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem("token")
+      const storedUser = localStorage.getItem("user")
 
-    if (storedToken && storedUser) {
-      try {
-        setToken(storedToken)
-        setUser(JSON.parse(storedUser))
-      } catch {
-        // Clear invalid stored data
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+      if (storedToken && storedUser) {
+        try {
+          // Verify token is still valid
+          const verifiedUser = await authService.verifyToken()
+          setToken(storedToken)
+          setUser(verifiedUser)
+        } catch {
+          // Token is invalid, clear stored data
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+        }
       }
+      setIsLoading(false)
     }
-    setIsLoading(false)
+
+    initializeAuth()
   }, [])
 
   const login = async (username: string, password: string): Promise<void> => {
-    // Mock API call - replace with actual API integration
-    const response = await mockLogin(username, password)
-
-    if (response.success) {
-      const { user: userData, token: userToken } = response.data
-      setUser(userData)
-      setToken(userToken)
-      localStorage.setItem("token", userToken)
-      localStorage.setItem("user", JSON.stringify(userData))
-    } else {
-      throw new Error(response.message || "Login failed")
+    try {
+      const response = await authService.login({ username, password })
+      
+      setUser(response.user)
+      setToken(response.token)
+      localStorage.setItem("token", response.token)
+      localStorage.setItem("user", JSON.stringify(response.user))
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : "Login failed")
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    setToken(null)
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.warn("Logout API call failed:", error)
+    } finally {
+      setUser(null)
+      setToken(null)
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+    }
   }
 
   const value = {
@@ -65,32 +75,3 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// Mock login function - replace with actual API call
-const mockLogin = async (username: string, password: string): Promise<
-  | { success: true; data: { user: User; token: string } }
-  | { success: false; message: string }
-> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  // Mock users for demo
-  const mockUsers = {
-    admin: { id: "1", username: "admin", role: "admin" as const },
-    viewer: { id: "2", username: "viewer", role: "viewer" as const },
-  }
-
-  if (username in mockUsers && password === "password") {
-    return {
-      success: true,
-      data: {
-        user: mockUsers[username as keyof typeof mockUsers],
-        token: `mock-jwt-token-${username}-${Date.now()}`,
-      },
-    }
-  }
-
-  return {
-    success: false,
-    message: "Invalid username or password",
-  }
-}

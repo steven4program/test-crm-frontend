@@ -49,7 +49,7 @@ const Layout: React.FC = () => {
                 <span className="ml-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{user?.role}</span>
               </span>
               <button
-                onClick={logout}
+                onClick={() => logout()}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <LogOut className="w-4 h-4 mr-2" />

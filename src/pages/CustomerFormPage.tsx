@@ -4,11 +4,17 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
+import { customersService } from "../services/customers"
+import type { CreateCustomerRequest, UpdateCustomerRequest } from "../services/customers"
 
 interface CustomerFormData {
   name: string
   email: string
   phone: string
+  company?: string
+  address?: string
+  notes?: string
+  status?: 'active' | 'inactive' | 'prospect'
 }
 
 const CustomerFormPage: React.FC = () => {
@@ -20,6 +26,10 @@ const CustomerFormPage: React.FC = () => {
     name: "",
     email: "",
     phone: "",
+    company: "",
+    address: "",
+    notes: "",
+    status: "prospect",
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -33,22 +43,20 @@ const CustomerFormPage: React.FC = () => {
   const fetchCustomer = async (customerId: string) => {
     try {
       setIsLoading(true)
-      // Mock API call - replace with actual API integration
-      const mockCustomer = {
-        id: customerId,
-        name: "John Doe",
-        email: "john.doe@example.com",
-        phone: "+1 (555) 123-4567",
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      setError("")
+      const customer = await customersService.getCustomer(customerId)
+      
       setFormData({
-        name: mockCustomer.name,
-        email: mockCustomer.email,
-        phone: mockCustomer.phone,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.company || "",
+        address: customer.address || "",
+        notes: customer.notes || "",
+        status: customer.status,
       })
-    } catch {
-      setError("Failed to fetch customer")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to fetch customer")
     } finally {
       setIsLoading(false)
     }
@@ -60,24 +68,40 @@ const CustomerFormPage: React.FC = () => {
     setIsLoading(true)
 
     try {
-      // Mock API call - replace with actual API integration
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      if (isEditing) {
-        console.log("Updating customer:", { id, ...formData })
+      if (isEditing && id) {
+        const updateData: UpdateCustomerRequest = {}
+        if (formData.name) updateData.name = formData.name
+        if (formData.email) updateData.email = formData.email
+        if (formData.phone) updateData.phone = formData.phone
+        if (formData.company) updateData.company = formData.company
+        if (formData.address) updateData.address = formData.address
+        if (formData.notes) updateData.notes = formData.notes
+        if (formData.status) updateData.status = formData.status
+        
+        await customersService.updateCustomer(id, updateData)
       } else {
-        console.log("Creating customer:", formData)
+        const createData: CreateCustomerRequest = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          address: formData.address,
+          notes: formData.notes,
+          status: formData.status,
+        }
+        
+        await customersService.createCustomer(createData)
       }
 
       navigate("/dashboard")
-    } catch {
-      setError(isEditing ? "Failed to update customer" : "Failed to create customer")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : (isEditing ? "Failed to update customer" : "Failed to create customer"))
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
@@ -153,6 +177,68 @@ const CustomerFormPage: React.FC = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="Enter customer's phone number"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  id="company"
+                  name="company"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.company}
+                  onChange={handleChange}
+                  placeholder="Enter customer's company"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Enter customer's address"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.status}
+                  onChange={handleChange}
+                >
+                  <option value="prospect">Prospect</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows={3}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-3 py-2 border"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  placeholder="Enter any additional notes about the customer"
                 />
               </div>
 

@@ -3,13 +3,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, Shield, UserIcon } from "lucide-react"
-
-interface User {
-  id: string
-  username: string
-  role: "admin" | "viewer"
-  createdAt: string
-}
+import { usersService } from "../services/users"
+import type { User } from "../contexts/types"
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
@@ -25,26 +20,11 @@ const UserManagementPage: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true)
-      // Mock API call - replace with actual API integration
-      const mockUsers: User[] = [
-        {
-          id: "1",
-          username: "admin",
-          role: "admin",
-          createdAt: "2024-01-01",
-        },
-        {
-          id: "2",
-          username: "viewer",
-          role: "viewer",
-          createdAt: "2024-01-10",
-        },
-      ]
-
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setUsers(mockUsers)
-    } catch {
-      setError("Failed to fetch users")
+      setError("")
+      const response = await usersService.getUsers()
+      setUsers(response.users)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to fetch users")
     } finally {
       setIsLoading(false)
     }
@@ -53,20 +33,18 @@ const UserManagementPage: React.FC = () => {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      // Mock API call - replace with actual API integration
-      const user: User = {
-        id: Date.now().toString(),
+      setError("")
+      const createdUser = await usersService.createUser({
         username: newUser.username,
+        password: newUser.password,
         role: newUser.role,
-        createdAt: new Date().toISOString().split("T")[0],
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      setUsers([...users, user])
+      })
+      
+      setUsers([...users, createdUser])
       setNewUser({ username: "", password: "", role: "viewer" })
       setShowAddForm(false)
-    } catch {
-      setError("Failed to add user")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to add user")
     }
   }
 
@@ -76,10 +54,11 @@ const UserManagementPage: React.FC = () => {
     }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      setError("")
+      await usersService.deleteUser(userId)
       setUsers(users.filter((user) => user.id !== userId))
-    } catch {
-      setError("Failed to delete user")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to delete user")
     }
   }
 
@@ -241,7 +220,7 @@ const UserManagementPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">

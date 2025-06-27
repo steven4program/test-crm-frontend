@@ -182,10 +182,20 @@ npm run build
 For environment variables needed by the application:
 1. Go to Vercel project dashboard
 2. Settings → Environment Variables
-3. Add variables for different environments:
-   - Production
-   - Preview
-   - Development
+3. Add the following environment variable:
+
+**Required Environment Variable:**
+- **Name**: `VITE_API_BASE_URL`
+- **Value**: `https://test-crm-api.zeabur.app`
+- **Environment**: Production, Preview
+
+**Local Development:**
+- Create `.env` file with: `VITE_API_BASE_URL=http://localhost:3000`
+
+**Environment Options:**
+- **Production**: `https://test-crm-api.zeabur.app` (Zeabur deployment)
+- **Preview**: `https://test-crm-api.zeabur.app` (or staging URL if different)
+- **Development**: `http://localhost:3000` (local backend)
 
 ### GitHub Actions
 No secrets required for the CI pipeline since Vercel handles deployments automatically through its GitHub integration.
