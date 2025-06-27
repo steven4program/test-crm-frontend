@@ -1,7 +1,7 @@
 # Deployment Guide
 
 ## Overview
-This guide covers the complete CI/CD pipeline setup for the React CRM Frontend application using GitHub Actions and Vercel.
+This guide covers the CI/CD pipeline setup for the React CRM Frontend application using GitHub Actions for continuous integration and Vercel's native GitHub integration for deployment.
 
 ## Prerequisites
 - GitHub account
@@ -58,25 +58,11 @@ This guide covers the complete CI/CD pipeline setup for the React CRM Frontend a
    - **Output Directory**: `dist` (auto-detected)
    - **Install Command**: `npm ci`
 
-### Get Vercel Credentials for GitHub Actions
-1. Install Vercel CLI: `npm i -g vercel`
-2. Login to Vercel: `vercel login`
-3. Navigate to project directory and run: `vercel`
-4. Get credentials:
-   ```bash
-   # Get your Vercel token
-   vercel whoami
-   # Note the token from your account settings
-   
-   # Get project and org IDs
-   cat .vercel/project.json
-   ```
-
-### Configure GitHub Secrets
-Go to repository Settings → Secrets and variables → Actions, add:
-- `VERCEL_TOKEN`: Your Vercel personal access token
-- `VERCEL_ORG_ID`: From `.vercel/project.json`
-- `VERCEL_PROJECT_ID`: From `.vercel/project.json`
+### Automatic Deployment Setup
+Vercel automatically detects and deploys your application when connected to GitHub:
+1. Vercel will automatically deploy on every push to `main` branch (production)
+2. Vercel will create preview deployments for every pull request
+3. No additional configuration or secrets required in GitHub Actions
 
 ## 3. CI/CD Pipeline Features
 
@@ -91,9 +77,10 @@ The GitHub Actions workflow (`.github/workflows/ci.yml`) includes:
 - **Bundle Analysis**: Build size and composition analysis
 
 ### Deployment Strategy
-- **Preview Deployments**: Automatic deployment on pull requests
-- **Production Deployments**: Automatic deployment on push to `main`
-- **Build Artifacts**: Saved for 7 days for debugging
+- **CI Pipeline**: GitHub Actions runs tests, linting, and builds on every PR and push
+- **Preview Deployments**: Vercel automatically deploys preview versions for every pull request
+- **Production Deployments**: Vercel automatically deploys to production on push to `main` branch
+- **Build Artifacts**: GitHub Actions saves build artifacts for 7 days for debugging
 
 ### Security Headers
 The `vercel.json` configuration includes security headers:
@@ -119,16 +106,17 @@ The `vercel.json` configuration includes security headers:
    ```
 
 3. Create pull request:
-   - GitHub will automatically trigger CI pipeline
-   - Vercel will create preview deployment
-   - Review checks must pass before merge
+   - GitHub Actions automatically runs CI pipeline (tests, linting, build)
+   - Vercel automatically creates a preview deployment
+   - All CI checks must pass before merge is allowed
 
 ### Deployment Process
-1. **PR Preview**: Each PR gets a unique preview URL
-2. **Code Review**: Team reviews code and preview deployment
-3. **CI Checks**: All tests, linting, and builds must pass
-4. **Merge to Main**: Triggers production deployment
-5. **Production**: Live at your Vercel production URL
+1. **PR Creation**: Triggers both GitHub Actions CI and Vercel preview deployment
+2. **CI Pipeline**: Runs tests, linting, TypeScript checks, and build verification
+3. **Preview Deployment**: Vercel provides unique preview URL for testing
+4. **Code Review**: Team reviews code changes and tests preview deployment
+5. **Merge to Main**: After approval, triggers Vercel production deployment automatically
+6. **Production**: Live application updates at your Vercel production URL
 
 ## 5. Monitoring & Maintenance
 
@@ -164,14 +152,14 @@ npm run lint
 ```
 
 **Deployment Issues**:
-- Verify Vercel credentials in GitHub secrets
 - Check Vercel dashboard for deployment logs
 - Ensure `vercel.json` configuration is correct
+- Verify Vercel GitHub app has proper repository access
 
 **Environment Variables**:
 - Add variables in Vercel dashboard
-- Reference in GitHub Actions if needed
 - Use different values for preview vs production
+- No need to configure in GitHub Actions
 
 ### Local Testing
 ```bash
@@ -199,10 +187,8 @@ For environment variables needed by the application:
    - Preview
    - Development
 
-### GitHub Actions Secrets
-For CI/CD pipeline secrets:
-1. Repository Settings → Secrets and variables → Actions
-2. Add repository secrets (never commit these to code)
+### GitHub Actions
+No secrets required for the CI pipeline since Vercel handles deployments automatically through its GitHub integration.
 
 ## 8. Custom Domain (Optional)
 
