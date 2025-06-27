@@ -3,14 +3,14 @@
 import type React from "react"
 import { useState, useEffect, type ReactNode } from "react"
 import type { User } from "./types"
-import { AuthContext } from "./context"
-import { authService } from "../services/auth"
+import { AuthContext } from "./AuthContext"
+import { authService } from "../../services/auth"
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -75,3 +75,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
+export default AuthProvider

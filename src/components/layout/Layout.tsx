@@ -2,17 +2,27 @@
 
 import type React from "react"
 import { Outlet, Link, useLocation } from "react-router-dom"
-import { useAuth } from "../contexts/useAuth"
+import { useAuth } from "../../contexts/auth"
 import { Users, LogOut, BarChart3 } from "lucide-react"
+
+interface NavigationItem {
+  name: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+}
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth()
   const location = useLocation()
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
     ...(user?.role === "admin" ? [{ name: "Users", href: "/users", icon: Users }] : []),
   ]
+
+  const handleLogout = () => {
+    logout()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,8 +59,10 @@ const Layout: React.FC = () => {
                 <span className="ml-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">{user?.role}</span>
               </span>
               <button
-                onClick={() => logout()}
+                onClick={handleLogout}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                type="button"
+                aria-label="Logout"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout

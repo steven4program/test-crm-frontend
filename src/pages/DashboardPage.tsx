@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { useAuth } from "../contexts/useAuth"
+import { useAuth } from "../contexts/auth"
 import { Plus, Edit, Trash2, Mail, Phone } from "lucide-react"
 
 interface Customer {

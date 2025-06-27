@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, Shield, UserIcon } from "lucide-react"
 import { usersService } from "../services/users"
-import type { User } from "../contexts/types"
+import type { User } from "../contexts/auth"
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])

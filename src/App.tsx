@@ -1,12 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom"
-import { useAuth } from "./contexts/useAuth"
-import LoginPage from "./pages/LoginPage"
+import { useAuth } from "./contexts/auth"
+import LoginPage from "./pages/login"
 import DashboardPage from "./pages/DashboardPage"
 import UserManagementPage from "./pages/UserManagementPage"
 import CustomerFormPage from "./pages/CustomerFormPage"
-import Layout from "./components/Layout"
-import PrivateRoute from "./components/PrivateRoute"
-import AdminRoute from "./components/AdminRoute"
+import Layout from "./components/layout"
+import { PrivateRoute, AdminRoute } from "./components/routing"
 
 function App() {
   const { isLoading } = useAuth()

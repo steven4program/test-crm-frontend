@@ -1,5 +1,5 @@
 import { apiService, type ApiResponse } from './api'
-import type { User } from '../contexts/types'
+import type { User } from '../contexts/auth'
 
 export interface CreateUserRequest {
   username: string

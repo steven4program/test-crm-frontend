@@ -2,7 +2,7 @@
 
 import type React from "react"
 import type { ReactNode } from "react"
-import { useAuth } from "../contexts/useAuth"
+import { useAuth } from "../../contexts/auth"
 
 interface AdminRouteProps {
   children: ReactNode
