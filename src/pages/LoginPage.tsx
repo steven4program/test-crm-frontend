@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/useAuth"
 import { Eye, EyeOff } from "lucide-react"
 
@@ -11,7 +12,15 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, user } = useAuth()
+  const navigate = useNavigate()
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true })
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,6 +29,7 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(username, password)
+      // Redirect will happen automatically via useEffect when user state updates
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed")
     } finally {
@@ -32,7 +42,7 @@ const LoginPage: React.FC = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to Simple CRM</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Demo credentials: admin/password or viewer/password</p>
+          <p className="mt-2 text-center text-sm text-gray-600">Demo credentials: admin/Admin@123</p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
