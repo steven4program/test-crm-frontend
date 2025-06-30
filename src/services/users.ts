@@ -44,13 +44,24 @@ class UsersService {
     const queryString = queryParams.toString()
     const endpoint = queryString ? `/users?${queryString}` : '/users'
     
-    const response = await apiService.get<ApiResponse<UserListResponse>>(endpoint)
-    
-    if (!response.success || !response.data) {
-      throw new Error(response.message || 'Failed to fetch users')
+    const response = await apiService.get<{
+      data: User[]
+      pagination: {
+        total: number
+        page: number
+        limit: number
+        totalPages: number
+        hasNext: boolean
+        hasPrev: boolean
+      }
+    }>(endpoint)
+
+    return {
+      users: response.data,
+      total: response.pagination.total,
+      page: response.pagination.page,
+      limit: response.pagination.limit
     }
-    
-    return response.data
   }
 
   // Get single user by ID

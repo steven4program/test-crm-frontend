@@ -5,14 +5,8 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../contexts/auth"
 import { Plus, Edit, Trash2, Mail, Phone } from "lucide-react"
-
-interface Customer {
-  id: string
-  name: string
-  email: string
-  phone: string
-  createdAt: string
-}
+import { customersService } from "../services/customers"
+import type { Customer } from "../services/customers"
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth()
@@ -27,36 +21,16 @@ const DashboardPage: React.FC = () => {
   const fetchCustomers = async () => {
     try {
       setIsLoading(true)
-      // Mock API call - replace with actual API integration
-      const mockCustomers: Customer[] = [
-        {
-          id: "1",
-          name: "John Doe",
-          email: "john.doe@example.com",
-          phone: "+1 (555) 123-4567",
-          createdAt: "2024-01-15",
-        },
-        {
-          id: "2",
-          name: "Jane Smith",
-          email: "jane.smith@example.com",
-          phone: "+1 (555) 987-6543",
-          createdAt: "2024-01-20",
-        },
-        {
-          id: "3",
-          name: "Bob Johnson",
-          email: "bob.johnson@example.com",
-          phone: "+1 (555) 456-7890",
-          createdAt: "2024-01-25",
-        },
-      ]
-
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setCustomers(mockCustomers)
-    } catch {
-      setError("Failed to fetch customers")
+      setError("")
+      const response = await customersService.getCustomers()
+      console.log('API response:', response) // Debug log
+      // Ensure customers is always an array
+      const customersArray = Array.isArray(response.customers) ? response.customers : []
+      setCustomers(customersArray)
+    } catch (error) {
+      console.error('Error fetching customers:', error) // Debug log
+      setError(error instanceof Error ? error.message : "Failed to fetch customers")
+      setCustomers([]) // Ensure customers is always an array even on error
     } finally {
       setIsLoading(false)
     }
@@ -68,11 +42,11 @@ const DashboardPage: React.FC = () => {
     }
 
     try {
-      // Mock API call - replace with actual API integration
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      setError("")
+      await customersService.deleteCustomer(customerId)
       setCustomers(customers.filter((customer) => customer.id !== customerId))
-    } catch {
-      setError("Failed to delete customer")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to delete customer")
     }
   }
 
@@ -145,7 +119,7 @@ const DashboardPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {customers.map((customer) => (
+                  {Array.isArray(customers) && customers.map((customer) => (
                     <tr key={customer.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{customer.name}</div>
@@ -163,7 +137,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(customer.createdAt).toLocaleDateString()}
+                        {customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       {user?.role === "admin" && (
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
