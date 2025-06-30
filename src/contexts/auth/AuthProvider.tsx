@@ -22,12 +22,23 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (storedToken && storedUser) {
         try {
-          // Verify token is still valid
-          const verifiedUser = await authService.verifyToken()
+          // Parse and immediately set stored user data for fast UI
+          const parsedUser = JSON.parse(storedUser)
           setToken(storedToken)
-          setUser(verifiedUser)
+          setUser(parsedUser)
+          
+          // Verify token in background - don't block UI
+          authService.verifyToken().catch((error) => {
+            // Only clear on actual authentication errors (401/403), not network errors
+            if (error?.status === 401 || error?.status === 403) {
+              setUser(null)
+              setToken(null)
+              localStorage.removeItem("token")
+              localStorage.removeItem("user")
+            }
+          })
         } catch {
-          // Token is invalid, clear stored data
+          // Invalid stored data format, clear it
           localStorage.removeItem("token")
           localStorage.removeItem("user")
         }
