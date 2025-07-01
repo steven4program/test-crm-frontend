@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
-import React from 'react'
 import { useAuth } from '../useAuth'
 import AuthProvider from '../AuthProvider'
 import type { ReactNode } from 'react'
